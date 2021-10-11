@@ -126,21 +126,28 @@ def quick_sort(arr: np.ndarray):
 #проверка времени выполнения блока данных
 def check_function_time(arr: List[np.ndarray], algorithm: Callable) -> float:
     arr_time = []
+    arr_swap = []
     for i in arr:
+        global swap_count
+        swap_count = 0
         star_time = time.time()
         algorithm(i)
         end_time = time.time()
+        arr_swap.append(swap_count)
         arr_time.append(end_time - star_time)
-    return arr_time
+    return [arr_time, arr_swap]
 
 #запуск процессов
 def process_start( arr: List[np.ndarray], algorithm: Callable) -> Dict[str, List[float]]:
     time_arr = []
+    swap_arr = []
     with Pool(processes=8) as pool:
         res =  pool.starmap(check_function_time, [(arr[i*12:(i*12)+12], algorithm) for i in range(8)])
     for i in res:
-        time_arr.extend(i)
-    return time_arr
+        time_arr.extend(i[0])
+        swap_arr.extend(i[1])
+    return [time_arr, swap_arr]
+
 if __name__ == '__main__':
     time_arr = {}
     sort_algorithm = [insertion_sort, exchange_sort, selection_sort, heap_sort, quick_sort]
@@ -150,10 +157,13 @@ if __name__ == '__main__':
     for algorithm in sort_algorithm:
         algorithm_name = algorithm.__name__
         time_arr[algorithm_name] = []
+        start_alg = time.time()
         for arr in data:
-            time_arr[algorithm_name].append({len(arr[0]): process_start(arr, algorithm)})
+            time_and_swap_arr = process_start(arr, algorithm)
+            time_arr[algorithm_name].append({len(arr[0]): {"swap": time_and_swap_arr[1], "time": time_and_swap_arr[0]}})
+        print(algorithm_name, time.time() - start_alg)
     end = time.time()
     print(end - start)
-    with open("time_arr.json", "w") as outfile:
+    with open("time_and_swap_arr.json", "w") as outfile:
         json.dump(time_arr, outfile)
 #         time_arr[algorithm_name].append(process_start(algorithm, arr.copy()))с
