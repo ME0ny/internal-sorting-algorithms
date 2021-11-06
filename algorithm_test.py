@@ -7,7 +7,7 @@ from multiprocessing import Pool, TimeoutError
 # import ipyparallel as ipp
 import multiprocessing
 import json
-
+import pickle
 
 _arr_len = 96
 # 96 массивов с 10 элементами от 1 до 10
@@ -156,14 +156,21 @@ if __name__ == '__main__':
     data = [arr10, arr25, arr5h, arr1th, arr5th]
     for algorithm in sort_algorithm:
         algorithm_name = algorithm.__name__
-        time_arr[algorithm_name] = []
+        time_arr[algorithm_name] = {}
         start_alg = time.time()
         for arr in data:
             time_and_swap_arr = process_start(arr, algorithm)
-            time_arr[algorithm_name].append({len(arr[0]): {"swap": time_and_swap_arr[1], "time": time_and_swap_arr[0]}})
+            time_arr[algorithm_name][len(arr[0])] = {"swap": time_and_swap_arr[1], "time": time_and_swap_arr[0]}
         print(algorithm_name, time.time() - start_alg)
     end = time.time()
     print(end - start)
     with open("time_and_swap_arr.json", "w") as outfile:
         json.dump(time_arr, outfile)
+    input_arr = {"arr10": [i.tolist() for i in arr10], 
+                    "arr25": [i.tolist() for i in arr25], 
+                    "arr5h": [i.tolist() for i in arr5h], 
+                    "arr1th": [i.tolist() for i in arr1th], 
+                    "arr5th": [i.tolist() for i in arr5th]}
+    with open("input_file.json", "w") as input_file:
+        json.dump(input_arr, input_file)
 #         time_arr[algorithm_name].append(process_start(algorithm, arr.copy()))с
